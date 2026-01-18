@@ -1,47 +1,74 @@
 {% extends "layout.html" %}
 
-{% block title %}Dashboard Overview{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
+
 <style>
-    .stat-card { background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; transition: transform 0.3s; }
-    .stat-card:hover { transform: translateY(-5px); }
-    .stat-card .icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; font-size: 24px; color: white; }
-    .stat-card.primary .icon { background-color: var(--primary-color); }
-    .stat-card.secondary .icon { background-color: var(--secondary-color); }
-    .stat-card.accent .icon { background-color: var(--accent-color); }
-    .stat-card.danger .icon { background-color: #F44336; }
-    .data-card { background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .chart-container { position: relative; height: 300px; margin-bottom: 20px; }
+.dashboard-header {
+    background: linear-gradient(135deg, #2E7D32, #66BB6A);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    transition: transform .3s, box-shadow .3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,.2);
+}
+
+.stat-card i {
+    font-size: 45px;
+    opacity: .3;
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+}
+
+.bg-users { background: linear-gradient(135deg, #42A5F5, #1E88E5); }
+.bg-edu   { background: linear-gradient(135deg, #FFA726, #FB8C00); }
+.bg-cat   { background: linear-gradient(135deg, #EF5350, #E53935); }
 </style>
 
-<div class="row">
-    <div class="col-md-3 col-sm-6">
-        <div class="stat-card primary">
-            <div class="icon"><i class="bi bi-people-fill"></i></div>
-            <h5>Total Pengguna</h5>
-            <h2>3</h2> <small class="text-muted">Data Realtime</small>
-        </div>
-    </div>
-    </div>
+<div class="dashboard-header">
+    <h3>Selamat Datang, {{ current_user.username }}</h3>
+    <p class="mb-0">Dashboard Admin Smart Waste Kids</p>
+</div>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="data-card">
-            <h5>Distribusi Jenis Sampah</h5>
-            <div class="chart-container">
-                <canvas id="sampahChart"></canvas>
-            </div>
+    <div class="col-md-4">
+        <div class="stat-card bg-users">
+            <h6>Total Pengguna</h6>
+            <h2>{{ total_users }}</h2>
+            <i class="bi bi-people-fill"></i>
         </div>
     </div>
-    </div>
-{% endblock %}
 
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Taruh script Chart.js di sini (copy dari index.html lama bagian script chart)
-    const sampahCtx = document.getElementById('sampahChart').getContext('2d');
-    // ... dst ...
-</script>
+    <div class="col-md-4">
+        <div class="stat-card bg-edu">
+            <h6>Konten Edukasi</h6>
+            <h2>{{ total_edukasi }}</h2>
+            <i class="bi bi-book-half"></i>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card bg-cat">
+            <h6>Kategori Sampah</h6>
+            <h2>{{ total_kategori }}</h2>
+            <i class="bi bi-tags-fill"></i>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

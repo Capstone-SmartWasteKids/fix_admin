@@ -126,6 +126,25 @@
         .btn-login:active {
             transform: scale(0.98);
         }
+        .btn-register {
+            width: 100%;
+            padding: 13px;
+            border-radius: 50px;
+            border: 2px dashed var(--primary-color);
+            background-color: transparent;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .btn-register:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -157,10 +176,17 @@
                 <div class="input-icon">
                     <i class="bi bi-lock-fill"></i>
                 </div>
-                <input type="password" name="password_hash" class="input-field" placeholder="***********" required>
+                <input type="password" name="password" class="input-field" placeholder="***********" required>
             </div>
 
             <button type="submit" class="btn-login">LOGIN</button>
+            {% if not master_admin_exists %}
+                <a href="{{ url_for('register_master_admin') }}">
+                    <button type="button" class="btn-register">
+                        REGISTER MASTER ADMIN (PERTAMA KALI)
+                    </button>
+                </a>
+            {% endif %}
         </form>
     </div>
 

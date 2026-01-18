@@ -21,6 +21,13 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 
 # Inisialisasi MySQL
 mysql = MySQL(app)
+def master_admin_exists():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT COUNT(*) AS total FROM users WHERE role = 'master_admin'")
+    result = cur.fetchone()
+    cur.close()
+    return result['total'] > 0
+
 
 # --- INISIALISASI FLASK-LOGIN ---
 login_manager = LoginManager(app)
@@ -52,13 +59,28 @@ def load_user(user_id):
 # --- ROUTES ---
 
 @app.route('/')
-@login_required 
+@login_required
 def dashboard():
-    if current_user.role != 'admin':
-        flash('Akses ditolak. Halaman ini khusus Admin.', 'danger')
-        return redirect(url_for('logout')) 
-        
-    return render_template('dashboard.html', user=current_user)
+    cur = mysql.connection.cursor()
+
+    cur.execute("SELECT COUNT(*) AS total FROM users")
+    total_users = cur.fetchone()['total']
+
+    cur.execute("SELECT COUNT(*) AS total FROM educational_contents")
+    total_edukasi = cur.fetchone()['total']
+
+    cur.execute("SELECT COUNT(*) AS total FROM waste_categories")
+    total_kategori = cur.fetchone()['total']
+
+    cur.close()
+
+    return render_template(
+        'dashboard.html',
+        admin=current_user,
+        total_users=total_users,
+        total_edukasi=total_edukasi,
+        total_kategori=total_kategori
+    )
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -80,7 +102,7 @@ def login():
             # User dari dump SQL mungkin tidak bisa login jika algoritma hash beda.
             # Kode ini cocok untuk user baru yang dibuat lewat web ini.
             if check_password_hash(account['password'], password):
-                if account['role'] == 'admin':
+                if account['role'] in ['admin', 'master_admin']:
                     user_obj = User(account['user_id'], account['username'], account['role'])
                     login_user(user_obj, remember=True)
                     flash('Login berhasil! Selamat datang.', 'success')
@@ -92,7 +114,39 @@ def login():
         else:
             flash('Username salah.', 'danger')
 
-    return render_template('login.html')
+    return render_template(
+        'login.html',
+        master_admin_exists=master_admin_exists()
+    )
+
+@app.route('/register-master-admin')
+def register_master_admin():
+    if master_admin_exists():
+        flash('Master Admin sudah terdaftar.', 'warning')
+        return redirect(url_for('login'))
+    return render_template('register_master_admin.html')
+
+@app.route('/register-master-admin/save', methods=['POST'])
+def save_master_admin():
+    if master_admin_exists():
+        flash('Master Admin sudah ada. Tidak bisa menambahkan lagi.', 'danger')
+        return redirect(url_for('login'))
+
+    username = request.form['username']
+    email = request.form['email']
+    password = generate_password_hash(request.form['password'])
+
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        INSERT INTO users (username, email, password, role)
+        VALUES (%s,%s,%s,'master_admin')
+    """, (username, email, password))
+
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Master Admin berhasil dibuat. Silakan login.', 'success')
+    return redirect(url_for('login'))
 
 @app.route('/logout')
 @login_required
