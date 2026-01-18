@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+
+{% block title %}Manajemen Pengguna{% endblock %}
+
+{% block content %}
+<style>
+    /* CSS Tambahan khusus halaman ini untuk menyesuaikan dengan gambar */
+    .table-avatar {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .card-custom {
+        border: none;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+    }
+
+    .card-header-custom {
+        background-color: white;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 20px;
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    /* Style untuk Badge Role agar mirip gambar */
+    .badge-admin {
+        background-color: #e3f2fd;
+        /* Biru muda sekali */
+        color: #0d6efd;
+        border: 1px solid #cff4fc;
+    }
+
+    .badge-user {
+        background-color: #e8f5e9;
+        /* Hijau muda sekali */
+        color: #198754;
+        border: 1px solid #d1e7dd;
+    }
+
+    /* Style tombol aksi kotak rounded */
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+    }
+</style>
+
+<div class="container-fluid px-4 mt-4">
+
+    <div class="card card-custom bg-white">
+        <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-dark">Data Pengguna</h5>
+
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <a href="{{ url_for('add_user_form') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Tambah Pengguna
+                </a>
+            </button>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table id="usersTable" class="table table-hover align-middle" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%;">ID</th>
+                            <th style="width: 25%;">Nama Lengkap</th>
+                            <th style="width: 15%;">Username</th>
+                            <th style="width: 20%;">Email</th>
+                            <th style="width: 10%;">Role</th>
+                            <th style="width: 15%;">Level</th>
+                            <th style="width: 10%;">Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for row in users %}
+                        <tr>
+                            <td class="text-muted">{{ row['user_id'] }}</td>
+                            <td>
+                                <span class="fw-medium">{{ row['full_name'] }}</span>
+                            </td>
+
+                            <td>{{ row['username'] }}</td>
+
+                            <td class="text-muted">{{ row['email'] }}</td>
+
+                            <td>
+                                {% if row['role'] == 'admin' %}
+                                <span class="badge rounded-pill badge-admin px-3 py-2 fw-normal">Admin</span>
+                                {% else %}
+                                <span class="badge rounded-pill badge-user px-3 py-2 fw-normal">User</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-secondary">{{ row['level'] }}</td>
+
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-outline-primary btn-action" title="Lihat">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                    <a href="{{ url_for('edit_user_form', id_user=row['id_users']) }}"
+                                        class="btn btn-sm btn-outline-warning btn-action" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <a href="{{ url_for('delete_user', id_user=row['id_users']) }}"
+                                        class="btn btn-sm btn-outline-danger btn-action"
+                                        onclick='return confirm("Apakah Anda yakin ingin menghapus pengguna {{ row[nama_lengkap] }}? Data yang dihapus tidak bisa dikembalikan.")'
+                                        title="Hapus"> <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

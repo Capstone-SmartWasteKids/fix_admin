@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartWasteKids - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2E7D32;
+            --secondary-color: #81C784;
+            --accent-color: #FFC107;
+            --light-bg: #F1F8E9;
+            --dark-text: #1B5E20;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; color: #333; }
+        .sidebar { background-color: var(--primary-color); min-height: 100vh; color: white; position: fixed; top: 0; left: 0; width: 250px; z-index: 1000; transition: all 0.3s; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar-header { padding: 20px; background-color: var(--dark-text); text-align: center; }
+        .sidebar-menu { padding: 20px 0; }
+        .sidebar-menu a { color: white; display: block; padding: 12px 20px; text-decoration: none; transition: all 0.3s; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background-color: var(--secondary-color); color: var(--dark-text); }
+        .sidebar-menu i { margin-right: 10px; }
+        .main-content { margin-left: 250px; padding: 20px; transition: all 0.3s; }
+        .top-header { background-color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .toggle-sidebar { display: none; background: none; border: none; font-size: 24px; color: var(--primary-color); }
+        @media (max-width: 768px) {
+            .sidebar { width: 0; overflow: hidden; }
+            .sidebar.active { width: 250px; }
+            .main-content { margin-left: 0; }
+            .toggle-sidebar { display: block; }
+        }
+        /* Tambahan style custom dari halaman lain akan masuk sini */
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="bi bi-recycle"></i> SmartWasteKids</h3>
+        </div>
+        <div class="sidebar-menu">
+            <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="{{ url_for('users') }}" class="{{ 'active' if request.endpoint == 'users' else '' }}">
+                <i class="bi bi-people"></i> Pengguna
+            </a>
+            <a href="{{ url_for('sampah') }}" class="{{ 'active' if request.endpoint == 'sampah' else '' }}">
+                <i class="bi bi-trash"></i> Data Sampah
+            </a>
+            </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <div>
+                <button class="toggle-sidebar" id="toggleSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h4 class="d-inline-block ms-2">{% block title %}Dashboard Admin{% endblock %}</h4>
+            </div>
+            <div class="d-flex align-items-center">
+                <span class="me-3">Admin: Husain Mulyansyah</span>
+                <img src="https://picsum.photos/seed/admin/40/40.jpg" alt="Admin" class="user-avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+        </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        // Toggle Sidebar Global
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+        
+        // Auto Initialize Datatable if table exists
+        $(document).ready(function () {
+            $('table.table').DataTable({
+                responsive: true
+            });
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

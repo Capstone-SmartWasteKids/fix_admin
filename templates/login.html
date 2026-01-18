@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart Waste Kids</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* Palet Warna Smart Waste Kids */
+        :root {
+            --primary-color: #2E7D32;   /* Hijau Tua */
+            --secondary-color: #81C784; /* Hijau Muda */
+            --accent-color: #FFC107;    /* Kuning */
+            --light-bg: #F1F8E9;        /* Hijau Sangat Muda */
+            --dark-text: #1B5E20;       /* Teks Hijau Gelap */
+            --gray-text: #6c757d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            /* Background Gradient */
+            background: linear-gradient(135deg, #e0f2f1 0%, #a5d6a7 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 400px; /* Lebar maksimal container */
+            padding: 40px;
+            text-align: center;
+            
+            /* --- STYLE CONTAINER BARU --- */
+            background-color: #ffffff; /* Latar belakang putih */
+            border-radius: 20px;       /* Sudut membulat pada container */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); /* Efek bayangan agar timbul */
+            /* --------------------------- */
+        }
+
+        /* Ikon Besar di Atas (Grup User) */
+        .top-icon {
+            font-size: 80px; /* Sedikit diperkecil agar proporsional dalam container */
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Styling Input Pill-Shaped */
+        .input-group {
+            background: #f8f9fa; /* Background input sedikit abu agar kontras dengan container putih */
+            border: 1px solid #eee;
+            border-radius: 50px; 
+            padding: 12px 25px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .input-group:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.1); /* Bayangan hijau halus */
+            border-color: var(--secondary-color);
+        }
+
+        /* Ikon di dalam input */
+        .input-icon {
+            color: var(--gray-text);
+            font-size: 1.2rem;
+            margin-right: 15px;
+            padding-right: 15px;
+            border-right: 1px solid #ccc; 
+            display: flex;
+            align-items: center;
+        }
+
+        .input-field {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 1rem;
+            color: #333;
+            background: transparent;
+        }
+        
+        .input-field::placeholder {
+            color: #aaa;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        /* Tombol Login Besar */
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            border-radius: 50px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.2);
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background-color: var(--dark-text);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4);
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="top-icon">
+            <i class="bi bi-people-fill"></i>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #f5c6cb; font-size: 14px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="/login" method="POST">
+            <div class="input-group">
+                <div class="input-icon">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <input type="text" name="username" class="input-field" placeholder="USERNAME" required>
+            </div>
+
+            <div class="input-group">
+                <div class="input-icon">
+                    <i class="bi bi-lock-fill"></i>
+                </div>
+                <input type="password" name="password_hash" class="input-field" placeholder="***********" required>
+            </div>
+
+            <button type="submit" class="btn-login">LOGIN</button>
+        </form>
+    </div>
+
+</body>
+</html>

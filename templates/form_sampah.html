@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block title %}{{ 'Edit Sampah' if sampah else 'Tambah Sampah' }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header fw-bold">
+            {{ 'Edit Sampah' if sampah else 'Tambah Sampah' }}
+        </div>
+
+        <form action="{{ url_for('save_sampah') }}" method="POST" enctype="multipart/form-data">
+            <div class="card-body">
+
+                <input type="hidden" name="id_sampah" value="{{ sampah['id_sampah'] if sampah else '' }}">
+
+                <div class="mb-3">
+                    <label>Nama Sampah</label>
+                    <input type="text" name="nama_sampah" class="form-control"
+                           value="{{ sampah['nama_sampah'] if sampah else '' }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Kategori</label>
+                    <select name="id_kategori" class="form-select" required>
+                        {% for k in kategori %}
+                        <option value="{{ k['id_kategori'] }}"
+                            {{ 'selected' if sampah and sampah['id_kategori']==k['id_kategori'] }}>
+                            {{ k['jenis_sampah'] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Lama Terurai</label>
+                    <input type="text" name="lama_terurai" class="form-control"
+                           value="{{ sampah['lama_terurai'] if sampah else '' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label>Deskripsi</label>
+                    <textarea name="deskripsi_sampah" class="form-control" rows="3">{{ sampah['deskripsi_sampah'] if sampah else '' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label>Manfaat</label>
+                    <textarea name="manfaat_sampah" class="form-control" rows="3">{{ sampah['manfaat_sampah'] if sampah else '' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label>Gambar</label>
+                    <input type="file" name="gambar" class="form-control">
+
+                    {% if sampah and sampah['gambar_base64'] %}
+                        <div class="mt-2">
+                            <small>Gambar saat ini:</small><br>
+                            <img src="data:image/jpeg;base64,{{ sampah['gambar_base64'] }}"
+                                 width="80" class="rounded border">
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="card-footer text-end">
+                <a href="{{ url_for('sampah') }}" class="btn btn-secondary">Batal</a>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

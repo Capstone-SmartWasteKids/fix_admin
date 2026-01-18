@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<style>
+    .stat-card { background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; transition: transform 0.3s; }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-card .icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; font-size: 24px; color: white; }
+    .stat-card.primary .icon { background-color: var(--primary-color); }
+    .stat-card.secondary .icon { background-color: var(--secondary-color); }
+    .stat-card.accent .icon { background-color: var(--accent-color); }
+    .stat-card.danger .icon { background-color: #F44336; }
+    .data-card { background-color: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .chart-container { position: relative; height: 300px; margin-bottom: 20px; }
+</style>
+
+<div class="row">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card primary">
+            <div class="icon"><i class="bi bi-people-fill"></i></div>
+            <h5>Total Pengguna</h5>
+            <h2>3</h2> <small class="text-muted">Data Realtime</small>
+        </div>
+    </div>
+    </div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="data-card">
+            <h5>Distribusi Jenis Sampah</h5>
+            <div class="chart-container">
+                <canvas id="sampahChart"></canvas>
+            </div>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Taruh script Chart.js di sini (copy dari index.html lama bagian script chart)
+    const sampahCtx = document.getElementById('sampahChart').getContext('2d');
+    // ... dst ...
+</script>
+{% endblock %}

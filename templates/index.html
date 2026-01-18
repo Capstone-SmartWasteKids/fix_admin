@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartWasteKids - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2E7D32;
+            --secondary-color: #81C784;
+            --accent-color: #FFC107;
+            --light-bg: #F1F8E9;
+            --dark-text: #1B5E20;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            min-height: 100vh;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background-color: var(--dark-text);
+            text-align: center;
+        }
+        
+        .sidebar-header h3 {
+            margin: 0;
+            font-weight: bold;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .sidebar-menu a {
+            color: white;
+            display: block;
+            padding: 12px 20px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background-color: var(--secondary-color);
+            color: var(--dark-text);
+        }
+        
+        .sidebar-menu i {
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .top-header {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .stat-card.primary .icon {
+            background-color: var(--primary-color);
+        }
+        
+        .stat-card.secondary .icon {
+            background-color: var(--secondary-color);
+        }
+        
+        .stat-card.accent .icon {
+            background-color: var(--accent-color);
+        }
+        
+        .stat-card.danger .icon {
+            background-color: #F44336;
+        }
+        
+        .data-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .data-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .badge-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: normal;
+        }
+        
+        .badge-admin {
+            background-color: #E3F2FD;
+            color: #1565C0;
+        }
+        
+        .badge-user {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .toggle-sidebar {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+            
+            .sidebar.active {
+                width: 250px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .toggle-sidebar {
+                display: block;
+            }
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .action-buttons button {
+            margin-right: 5px;
+        }
+        
+        .tab-content {
+            padding-top: 20px;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            font-weight: 600;
+            border-bottom: 3px solid var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="bi bi-recycle"></i> SmartWasteKids</h3>
+        </div>
+        <div class="sidebar-menu">
+            <a href="#dashboard" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="#users"><i class="bi bi-people"></i> Pengguna</a>
+            <a href="#sampah"><i class="bi bi-trash"></i> Data Sampah</a>
+            <a href="#kategori"><i class="bi bi-tags"></i> Kategori Sampah</a>
+            <a href="#edukasi"><i class="bi bi-book"></i> Edukasi</a>
+            <a href="#penghargaan"><i class="bi bi-award"></i> Penghargaan</a>
+            <a href="#aktivitas"><i class="bi bi-clock-history"></i> Aktivitas</a>
+            <a href="#history"><i class="bi bi-journal-text"></i> Riwayat Buang Sampah</a>
+            <a href="#level"><i class="bi bi-bar-chart-steps"></i> Level Pengguna</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <div class="top-header">
+            <div>
+                <button class="toggle-sidebar" id="toggleSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h4 class="d-inline-block ms-2">Dashboard Admin</h4>
+            </div>
+            <div class="d-flex align-items-center">
+                <span class="me-3">Admin: Husain Mulyansyah</span>
+                <img src="https://picsum.photos/seed/admin/40/40.jpg" alt="Admin" class="user-avatar">
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="content-section">
+            <!-- Stats Cards -->
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card primary">
+                        <div class="icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h5>Total Pengguna</h5>
+                        <h2>3</h2>
+                        <small class="text-muted">2 pengguna biasa, 1 admin</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card secondary">
+                        <div class="icon">
+                            <i class="bi bi-trash-fill"></i>
+                        </div>
+                        <h5>Jenis Sampah</h5>
+                        <h2>7</h2>
+                        <small class="text-muted">Terdaftar dalam sistem</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card accent">
+                        <div class="icon">
+                            <i class="bi bi-book-fill"></i>
+                        </div>
+                        <h5>Materi Edukasi</h5>
+                        <h2>10</h2>
+                        <small class="text-muted">Tersedia untuk pengguna</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card danger">
+                        <div class="icon">
+                            <i class="bi bi-award-fill"></i>
+                        </div>
+                        <h5>Penghargaan</h5>
+                        <h2>10</h2>
+                        <small class="text-muted">Tersedia untuk diraih</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="data-card">
+                        <div class="card-header">
+                            <h5>Distribusi Jenis Sampah</h5>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="sampahChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="data-card">
+                        <div class="card-header">
+                            <h5>Aktivitas Pengguna (7 Hari Terakhir)</h5>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="aktivitasChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Aktivitas Terkini</h5>
+                    <a href="#aktivitas" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Pengguna</th>
+                                <th>Sampah</th>
+                                <th>Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>6</td>
+                                <td>Ahmad Fauzan</td>
+                                <td>Sepatu</td>
+                                <td>2026-01-12 09:30:00</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Ahmad Fauzan</td>
+                                <td>Baterai</td>
+                                <td>2026-01-12 08:45:00</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Merliana Hanifah</td>
+                                <td>Botol Plastik</td>
+                                <td>2026-01-11 15:00:00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div id="users" class="content-section" style="display: none;">
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Data Pengguna</h5>
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-plus-circle"></i> Tambah Pengguna</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="usersTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Lengkap</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Level</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://picsum.photos/seed/husain/40/40.jpg" alt="Avatar" class="user-avatar me-2">
+                                        Husain Mulyansyah
+                                    </div>
+                                </td>
+                                <td>husain123</td>
+                                <td>husain@example.com</td>
+                                <td><span class="badge badge-status badge-admin">Admin</span></td>
+                                <td>Josjis (Level 5)</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://picsum.photos/seed/merliana/40/40.jpg" alt="Avatar" class="user-avatar me-2">
+                                        Merliana Hanifah
+                                    </div>
+                                </td>
+                                <td>merliana456</td>
+                                <td>merliana@example.com</td>
+                                <td><span class="badge badge-status badge-user">User</span></td>
+                                <td>Hebat (Level 2)</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://picsum.photos/seed/ahmad/40/40.jpg" alt="Avatar" class="user-avatar me-2">
+                                        Ahmad Fauzan
+                                    </div>
+                                </td>
+                                <td>ahmad789</td>
+                                <td>ahmad@example.com</td>
+                                <td><span class="badge badge-status badge-user">User</span></td>
+                                <td>Pemula (Level 1)</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sampah Section -->
+        <div id="sampah" class="content-section" style="display: none;">
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Data Sampah</h5>
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-plus-circle"></i> Tambah Sampah</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="sampahTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Sampah</th>
+                                <th>Kategori</th>
+                                <th>Lama Terurai</th>
+                                <th>Deskripsi</th>
+                                <th>Manfaat</th>
+                                <th>Gambar</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Plastik</td>
+                                <td>1</td>
+                                <td>450 tahun</td>
+                                <td>Plastik sekali pakai dari berbagai kemasan</td>
+                                <td>Bisa didaur ulang menjadi barang baru</td>
+                                <td>plastik.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Botol Kaca</td>
+                                <td>2</td>
+                                <td>4000 tahun</td>
+                                <td>Botol kaca bekas minuman</td>
+                                <td>Dapat dilebur dan dijadikan botol baru atau kerajinan</td>
+                                <td>botol_kaca.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Botol Plastik</td>
+                                <td>2</td>
+                                <td>450 tahun</td>
+                                <td>Botol minuman plastik sekali pakai</td>
+                                <td>Dapat didaur ulang menjadi produk plastik baru</td>
+                                <td>botol_plastik.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Kaleng</td>
+                                <td>3</td>
+                                <td>200 tahun</td>
+                                <td>Kaleng minuman atau makanan bekas</td>
+                                <td>Bisa dilebur dan dibuat kaleng baru atau kerajinan</td>
+                                <td>kaleng.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Kertas</td>
+                                <td>4</td>
+                                <td>2 tahun</td>
+                                <td>Kertas bekas dari buku, koran, atau catatan</td>
+                                <td>Bisa dijadikan kertas daur ulang</td>
+                                <td>kertas.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Baterai</td>
+                                <td>5</td>
+                                <td>100 tahun</td>
+                                <td>Baterai bekas berbagai ukuran</td>
+                                <td>Dapat diambil logam dan bahan kimia untuk didaur ulang</td>
+                                <td>baterai.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>Sepatu</td>
+                                <td>6</td>
+                                <td>25 tahun</td>
+                                <td>Sepatu bekas dari berbagai bahan</td>
+                                <td>Bisa dijadikan bahan daur ulang atau kerajinan</td>
+                                <td>sepatu.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kategori Sampah Section -->
+        <div id="kategori" class="content-section" style="display: none;">
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Kategori Sampah</h5>
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-plus-circle"></i> Tambah Kategori</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="kategoriTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID Kategori</th>
+                                <th>Jenis Sampah</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Plastik</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Kaca</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Logam</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Kertas</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Baterai</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Lainnya</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edukasi Section -->
+        <div id="edukasi" class="content-section" style="display: none;">
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Materi Edukasi</h5>
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-plus-circle"></i> Tambah Materi</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="edukasiTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Judul Edukasi</th>
+                                <th>Deskripsi</th>
+                                <th>Gambar</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Pentingnya Memilah Sampah</td>
+                                <td>Edukasi tentang cara memisahkan sampah organik dan non-organik di rumah</td>
+                                <td>edukasi1.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Daur Ulang Plastik</td>
+                                <td>Penjelasan proses daur ulang plastik menjadi barang baru</td>
+                                <td>edukasi2.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Manfaat Kompos</td>
+                                <td>Cara membuat dan manfaat kompos dari sampah organik</td>
+                                <td>edukasi3.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Dampak Limbah Elektronik</td>
+                                <td>Bahaya limbah elektronik jika tidak didaur ulang</td>
+                                <td>edukasi4.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Mengurangi Sampah di Sekolah</td>
+                                <td>Tips dan trik mengurangi sampah di lingkungan sekolah</td>
+                                <td>edukasi5.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Pengelolaan Sampah Kaleng</td>
+                                <td>Cara mendaur ulang kaleng bekas dengan aman</td>
+                                <td>edukasi6.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>Reuse Sepatu Lama</td>
+                                <td>Ide kreatif menggunakan sepatu bekas menjadi barang berguna</td>
+                                <td>edukasi7.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>8</td>
+                                <td>Efek Plastik di Laut</td>
+                                <td>Dampak sampah plastik terhadap ekosistem laut dan makhluk hidup</td>
+                                <td>edukasi8.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>9</td>
+                                <td>Mendaur Ulang Kertas</td>
+                                <td>Proses dan manfaat mendaur ulang kertas bekas menjadi kertas baru</td>
+                                <td>edukasi9.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>10</td>
+                                <td>Pengurangan Sampah Rumah Tangga</td>
+                                <td>Strategi sederhana untuk mengurangi sampah di rumah sehari-hari</td>
+                                <td>edukasi10.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Penghargaan Section -->
+        <div id="penghargaan" class="content-section" style="display: none;">
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Data Penghargaan</h5>
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-plus-circle"></i> Tambah Penghargaan</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="penghargaanTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Judul Penghargaan</th>
+                                <th>Deskripsi</th>
+                                <th>Target</th>
+                                <th>Poin</th>
+                                <th>Badge</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Pemula</td>
+                                <td>Penghargaan untuk pengguna baru</td>
+                                <td>0</td>
+                                <td>10</td>
+                                <td>badge_pemula.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Aktif 7 Hari</td>
+                                <td>Login setiap hari selama 7 hari berturut-turut</td>
+                                <td>0</td>
+                                <td>20</td>
+                                <td>badge_aktif7.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Kontributor Konten</td>
+                                <td>Mengunggah 5 konten berkualitas</td>
+                                <td>0</td>
+                                <td>50</td>
+                                <td>badge_konten.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Top Player</td>
+                                <td>Mendapat skor tertinggi di minggu ini</td>
+                                <td>0</td>
+                                <td>100</td>
+                                <td>badge_topplayer.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Sosial</td>
+                                <td>Memberikan 10 like pada konten orang lain</td>
+                                <td>0</td>
+                                <td>15</td>
+                                <td>badge_sosial.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Explorer</td>
+                                <td>Mengunjungi semua halaman utama dalam 1 minggu</td>
+                                <td>0</td>
+                                <td>25</td>
+                                <td>badge_explorer.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>Fotografer Hebat</td>
+                                <td>Upload 10 foto dengan rating tinggi</td>
+                                <td>0</td>
+                                <td>60</td>
+                                <td>badge_fotografer.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>8</td>
+                                <td>Videografer Hebat</td>
+                                <td>Upload 5 video dengan rating tinggi</td>
+                                <td>0</td>
+                                <td>80</td>
+                                <td>badge_videografer.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>9</td>
+                                <td>Mentor</td>
+                                <td>Memberikan 5 tips bermanfaat untuk pengguna lain</td>
+                                <td>0</td>
+                                <td>30</td>
+                                <td>badge_mentor.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>10</td>
+                                <td>Veteran</td>
+                                <td>Pengguna yang sudah aktif selama 1 tahun</td>
+                                <td>0</td>
+                                <td>150</td>
+                                <td>badge_veteran.png</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aktivitas Section -->
+        <div id="aktivitas" class="content-section" style="display: none;">
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Aktivitas Pengguna</h5>
+                    <div>
+                        <button class="btn btn-sm btn-success"><i class="bi bi-download"></i> Export</button>
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filter</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="aktivitasTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID Aktivitas</th>
+                                <th>Pengguna</th>
+                                <th>Sampah</th>
+                                <th>Waktu Aktivitas</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Husain Mulyansyah</td>
+                                <td>Plastik</td>
+                                <td>2026-01-12 09:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Husain Mulyansyah</td>
+                                <td>Kaleng</td>
+                                <td>2026-01-12 10:15:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Merliana Hanifah</td>
+                                <td>Kertas</td>
+                                <td>2026-01-11 14:30:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Merliana Hanifah</td>
+                                <td>Botol Plastik</td>
+                                <td>2026-01-11 15:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Ahmad Fauzan</td>
+                                <td>Baterai</td>
+                                <td>2026-01-12 08:45:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Ahmad Fauzan</td>
+                                <td>Sepatu</td>
+                                <td>2026-01-12 09:30:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Buang Sampah Section -->
+        <div id="history" class="content-section" style="display: none;">
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Riwayat Buang Sampah</h5>
+                    <div>
+                        <button class="btn btn-sm btn-success"><i class="bi bi-download"></i> Export</button>
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filter</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="historyTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID History</th>
+                                <th>Pengguna</th>
+                                <th>Sampah</th>
+                                <th>Kategori</th>
+                                <th>Jumlah</th>
+                                <th>Tanggal</th>
+                                <th>Waktu</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Husain Mulyansyah</td>
+                                <td>Plastik</td>
+                                <td>Plastik</td>
+                                <td>1</td>
+                                <td>2026-01-12</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Husain Mulyansyah</td>
+                                <td>Kaleng</td>
+                                <td>Logam</td>
+                                <td>1</td>
+                                <td>2026-01-12</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Husain Mulyansyah</td>
+                                <td>Botol Plastik</td>
+                                <td>Kaca</td>
+                                <td>1</td>
+                                <td>2026-01-12</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Merliana Hanifah</td>
+                                <td>Kertas</td>
+                                <td>Kertas</td>
+                                <td>1</td>
+                                <td>2026-01-11</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Merliana Hanifah</td>
+                                <td>Botol Plastik</td>
+                                <td>Kaca</td>
+                                <td>1</td>
+                                <td>2026-01-11</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Merliana Hanifah</td>
+                                <td>Plastik</td>
+                                <td>Plastik</td>
+                                <td>1</td>
+                                <td>2026-01-11</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>Ahmad Fauzan</td>
+                                <td>Baterai</td>
+                                <td>Baterai</td>
+                                <td>1</td>
+                                <td>2026-01-12</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>8</td>
+                                <td>Ahmad Fauzan</td>
+                                <td>Sepatu</td>
+                                <td>Lainnya</td>
+                                <td>1</td>
+                                <td>2026-01-12</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>9</td>
+                                <td>Ahmad Fauzan</td>
+                                <td>Plastik</td>
+                                <td>Plastik</td>
+                                <td>1</td>
+                                <td>2026-01-12</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>10</td>
+                                <td>Husain Mulyansyah</td>
+                                <td>Kertas</td>
+                                <td>Kertas</td>
+                                <td>1</td>
+                                <td>2026-01-12</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>11</td>
+                                <td>Merliana Hanifah</td>
+                                <td>Kaleng</td>
+                                <td>Logam</td>
+                                <td>1</td>
+                                <td>2026-01-11</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>12</td>
+                                <td>Ahmad Fauzan</td>
+                                <td>Botol Plastik</td>
+                                <td>Kaca</td>
+                                <td>1</td>
+                                <td>2026-01-12</td>
+                                <td>0000-00-00 00:00:00</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level User Section -->
+        <div id="level" class="content-section" style="display: none;">
+            <div class="data-card">
+                <div class="card-header">
+                    <h5>Level Pengguna</h5>
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-plus-circle"></i> Tambah Level</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="levelTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID Level</th>
+                                <th>Nama Level</th>
+                                <th>Point Minimum</th>
+                                <th>Point Maksimum</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Pemula</td>
+                                <td>0</td>
+                                <td>499</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Hebat</td>
+                                <td>500</td>
+                                <td>999</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Keren</td>
+                                <td>1000</td>
+                                <td>1499</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Super</td>
+                                <td>1500</td>
+                                <td>1999</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Josjis</td>
+                                <td>2000</td>
+                                <td>2499</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Legenda</td>
+                                <td>2500</td>
+                                <td>999999</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Toggle Sidebar
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Navigation
+        document.querySelectorAll('.sidebar-menu a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                document.querySelectorAll('.sidebar-menu a').forEach(l => l.classList.remove('active'));
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Hide all sections
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Show the selected section
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                    
+                    // Initialize DataTable if not already initialized
+                    if (targetId !== 'dashboard') {
+                        const tableId = targetId + 'Table';
+                        if (!$.fn.DataTable.isDataTable('#' + tableId)) {
+                            $('#' + tableId).DataTable({
+                                responsive: true,
+                                pageLength: 10,
+                                language: {
+                                    search: "Cari:",
+                                    lengthMenu: "Tampilkan _MENU_ data per halaman",
+                                    info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ data",
+                                    paginate: {
+                                        first: "Pertama",
+                                        last: "Terakhir",
+                                        next: "Selanjutnya",
+                                        previous: "Sebelumnya"
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        });
+
+        // Initialize Charts
+        const sampahCtx = document.getElementById('sampahChart').getContext('2d');
+        const sampahChart = new Chart(sampahCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Plastik', 'Kaca', 'Logam', 'Kertas', 'Baterai', 'Lainnya'],
+                datasets: [{
+                    data: [2, 2, 1, 1, 1, 1],
+                    backgroundColor: [
+                        '#2E7D32',
+                        '#81C784',
+                        '#FFC107',
+                        '#4CAF50',
+                        '#8BC34A',
+                        '#CDDC39'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        const aktivitasCtx = document.getElementById('aktivitasChart').getContext('2d');
+        const aktivitasChart = new Chart(aktivitasCtx, {
+            type: 'line',
+            data: {
+                labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                datasets: [{
+                    label: 'Jumlah Aktivitas',
+                    data: [3, 5, 2, 8, 4, 6, 3],
+                    borderColor: '#2E7D32',
+                    backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

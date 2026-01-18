@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+
+{% block title %}
+{{ 'Edit Pengguna' if user else 'Tambah Pengguna Baru' }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi {{ 'bi-pencil-square' if user else 'bi-person-plus' }} me-2"></i>
+                        {{ 'Edit Pengguna' if user else 'Tambah Pengguna Baru' }}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form action="{{ url_for('save_user') }}" method="POST" enctype="multipart/form-data">
+
+                        <input type="hidden" name="id_users" value="{{ user['id_users'] if user else '' }}">
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nama Lengkap</label>
+                                <input type="text" name="nama_lengkap" class="form-control"
+                                    value="{{ user['nama_lengkap'] if user else '' }}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Username</label>
+                                <input type="text" name="username" class="form-control"
+                                    value="{{ user['username'] if user else '' }}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control"
+                                    value="{{ user['email'] if user else '' }}" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Role</label>
+                                <select name="role" class="form-select">
+                                    <option value="users" {{ 'selected' if user and user['role']=='users' }}>Users
+                                    </option>
+                                    <option value="admin" {{ 'selected' if user and user['role']=='admin' }}>Admin
+                                    </option>
+                                    <option value="master" {{ 'selected' if user and user['role']=='master' }}>Master
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Level Awal</label>
+                                <select name="current_level" class="form-select">
+                                    {% for lvl in levels %}
+                                    <option value="{{ lvl['id_level'] }}" {{ 'selected' if user and
+                                        user['current_level']==lvl['id_level'] }}>
+                                        {{ lvl['nama_level'] }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Password
+                                    {% if user %}
+                                    <small class="text-muted fst-italic">(Kosongkan jika tidak ingin mengubah)</small>
+                                    {% endif %}
+                                </label>
+                                <input type="password" name="password" class="form-control" {{ 'required' if not user
+                                    else '' }}>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Foto Profil</label>
+                                <input type="file" name="foto_profile" class="form-control">
+
+                                {% if user and user['foto_base64'] %}
+                                <div class="mt-2">
+                                    <small>Foto saat ini:</small><br>
+                                    <img src="data:image/jpeg;base64,{{ user['foto_base64'] }}" width="60"
+                                        class="rounded-circle border">
+                                </div>
+                                {% endif %}
+                            </div>
+
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ url_for('users') }}" class="btn btn-light border">Batal</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-save me-1"></i> Simpan Data
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
