@@ -71,4 +71,78 @@
     </div>
 </div>
 
+<div class="row mt-4">
+
+    <div class="col-md-4">
+        <div class="card shadow-sm p-3">
+            <h6 class="fw-bold">User Berdasarkan Role</h6>
+            <canvas id="roleChart"></canvas>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm p-3">
+            <h6 class="fw-bold">Sampah per Kategori</h6>
+            <canvas id="sampahChart"></canvas>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm p-3">
+            <h6 class="fw-bold">Aktivitas Admin (7 Hari)</h6>
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const usersRole = {{ users_role | tojson }};
+const sampahKategori = {{ sampah_kategori | tojson }};
+const aktivitasHarian = {{ aktivitas_harian | tojson }};
+
+window.onload = function () {
+
+    if (document.getElementById('roleChart')) {
+        new Chart(roleChart, {
+            type: 'doughnut',
+            data: {
+                labels: usersRole.map(r => r.role),
+                datasets: [{
+                    data: usersRole.map(r => r.total)
+                }]
+            }
+        });
+    }
+
+    if (document.getElementById('sampahChart')) {
+        new Chart(sampahChart, {
+            type: 'bar',
+            data: {
+                labels: sampahKategori.map(s => s.kategori),
+                datasets: [{
+                    data: sampahKategori.map(s => s.total)
+                }]
+            }
+        });
+    }
+
+    if (document.getElementById('activityChart')) {
+        new Chart(activityChart, {
+            type: 'line',
+            data: {
+                labels: aktivitasHarian.map(a => a.tanggal),
+                datasets: [{
+                    data: aktivitasHarian.map(a => a.total)
+                }]
+            }
+        });
+    }
+
+};
+</script>
 {% endblock %}

@@ -11,12 +11,11 @@
         <form action="{{ url_for('save_sampah') }}" method="POST" enctype="multipart/form-data">
             <div class="card-body">
 
-                <input type="hidden" name="id_sampah" value="{{ sampah['id_sampah'] if sampah else '' }}">
+                <input type="hidden" name="id_sampah" value="{{ sampah['id'] if sampah else '' }}">
 
                 <div class="mb-3">
                     <label>Nama Sampah</label>
-                    <input type="text" name="nama_sampah" class="form-control"
-                           value="{{ sampah['nama_sampah'] if sampah else '' }}" required>
+                    <input type="text" name="nama_sampah" value="{{ sampah['name'] if sampah else '' }}" required>
                 </div>
 
                 <div class="mb-3">

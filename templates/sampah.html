@@ -54,9 +54,9 @@
                             <td>{{ loop.index }}</td>
 
                             <td>
-                                {% if row['gambar_base64'] %}
-                                <img src="data:image/jpeg;base64,{{ row['gambar_base64'] }}"
-                                    alt="{{ row['nama_sampah'] }}" class="img-sampah">
+                                {% if row['image_sample'] %}
+                                <img src="{{ url_for('static', filename='uploads/' + row['image_sample']) }}"
+                                class="img-sampah">
                                 {% else %}
                                 <img src="https://via.placeholder.com/50" alt="No Image" class="img-sampah">
                                 {% endif %}
@@ -84,12 +84,12 @@
 
                             <td>
                                 <div class="d-flex gap-1">
-                                    <a href="{{ url_for('edit_sampah', id_sampah=row['id_sampah']) }}"
+                                    <a href="{{ url_for('edit_sampah', id_sampah=row['id']) }}"
                                         class="btn btn-sm btn-outline-warning" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
 
-                                    <a href="/sampah/delete/{{ row['id_sampah'] }}"
+                                    <a href="/sampah/delete/{{ row['id'] }}"
                                         class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin hapus?')"
                                         title="Hapus">
                                         <i class="bi bi-trash"></i>

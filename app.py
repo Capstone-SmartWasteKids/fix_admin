@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort
 import os
 from werkzeug.utils import secure_filename
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import base64
+from functools import wraps
 
 # 1. Import Config dari file config.py
 from config import Config 
@@ -27,6 +28,34 @@ def master_admin_exists():
     result = cur.fetchone()
     cur.close()
     return result['total'] > 0
+
+# =========================
+# ACTIVITY LOG HELPER
+# =========================
+def log_activity(activity):
+    if current_user.is_authenticated:
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            INSERT INTO activity_logs (admin_id, activity)
+            VALUES (%s, %s)
+        """, (current_user.id, activity))
+        mysql.connection.commit()
+        cur.close()
+
+def role_required(*roles):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            if not current_user.is_authenticated:
+                abort(403)
+
+            if current_user.role not in roles:
+                flash("Anda tidak memiliki hak akses ke halaman ini.", "danger")
+                return redirect(url_for('dashboard'))
+
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 # --- INISIALISASI FLASK-LOGIN ---
@@ -63,23 +92,53 @@ def load_user(user_id):
 def dashboard():
     cur = mysql.connection.cursor()
 
-    cur.execute("SELECT COUNT(*) AS total FROM users")
+    # STAT CARD
+    cur.execute("SELECT COUNT(*) total FROM users")
     total_users = cur.fetchone()['total']
 
-    cur.execute("SELECT COUNT(*) AS total FROM educational_contents")
+    cur.execute("SELECT COUNT(*) total FROM educational_contents")
     total_edukasi = cur.fetchone()['total']
 
-    cur.execute("SELECT COUNT(*) AS total FROM waste_categories")
+
+    cur.execute("SELECT COUNT(*) total FROM waste_categories")
     total_kategori = cur.fetchone()['total']
+
+    # GRAFIK 1: USER PER ROLE
+    cur.execute("""
+        SELECT role, COUNT(*) total
+        FROM users
+        GROUP BY role
+    """)
+    users_role = cur.fetchall()
+
+    # GRAFIK 2: SAMPAH PER KATEGORI
+    cur.execute("""
+        SELECT c.name kategori, COUNT(w.id) total
+        FROM waste_categories c
+        LEFT JOIN waste_items w ON c.id = w.category_id
+        GROUP BY c.id
+    """)
+    sampah_kategori = cur.fetchall()
+
+    # GRAFIK 3: AKTIVITAS PER HARI (7 hari terakhir)
+    cur.execute("""
+        SELECT DATE(created_at) tanggal, COUNT(*) total
+        FROM activity_logs
+        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        GROUP BY DATE(created_at)
+    """)
+    aktivitas_harian = cur.fetchall()
 
     cur.close()
 
     return render_template(
         'dashboard.html',
-        admin=current_user,
         total_users=total_users,
         total_edukasi=total_edukasi,
-        total_kategori=total_kategori
+        total_kategori=total_kategori,
+        users_role=users_role,
+        sampah_kategori=sampah_kategori,
+        aktivitas_harian=aktivitas_harian
     )
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -105,6 +164,7 @@ def login():
                 if account['role'] in ['admin', 'master_admin']:
                     user_obj = User(account['user_id'], account['username'], account['role'])
                     login_user(user_obj, remember=True)
+                    log_activity("Login ke sistem")
                     flash('Login berhasil! Selamat datang.', 'success')
                     return redirect(url_for('dashboard'))
                 else:
@@ -151,11 +211,14 @@ def save_master_admin():
 @app.route('/logout')
 @login_required
 def logout():
+    log_activity("Logout dari sistem")
     logout_user() 
     flash('Anda telah logout.', 'success')
     return redirect(url_for('login'))
 
 @app.route('/users')
+@login_required
+@role_required('admin', 'master_admin')
 def users():
     cur = mysql.connection.cursor()
     # QUERY UPDATE: users (user_id)
@@ -173,6 +236,8 @@ def users():
 # FORM TAMBAH USER
 # =========================
 @app.route('/user/add')
+@login_required
+@role_required('admin', 'master_admin')
 def add_user_form():
     # Tabel 'level_user' tidak ada di file SQL baru.
     # Level sepertinya hardcoded di enum atau string biasa ('Pemula', 'Legendaris', dll).
@@ -185,6 +250,8 @@ def add_user_form():
 # FORM EDIT USER
 # =========================
 @app.route('/user/edit/<string:id_user>')
+@login_required
+@role_required('admin', 'master_admin')
 def edit_user_form(id_user):
     cur = mysql.connection.cursor()
     # QUERY UPDATE: users (user_id)
@@ -247,6 +314,8 @@ def save_user():
             """, (nama, username, email, hashed_pw, role, level, filename))
 
             flash('Pengguna berhasil ditambahkan', 'success')
+            mysql.connection.commit()
+            log_activity(f"Menambahkan user baru: {username}")
 
         # UPDATE
         else:
@@ -280,6 +349,7 @@ def save_user():
             flash('Data pengguna berhasil diperbarui', 'success')
 
         mysql.connection.commit()
+        log_activity(f"Mengubah data user ID {id_user}")
 
     except Exception as e:
         mysql.connection.rollback()
@@ -291,36 +361,31 @@ def save_user():
     return redirect(url_for('users'))
 
 
-@app.route('/delete_user/<string:id_user>', methods=['GET'])
+@app.route('/delete_user/<string:id_user>')
+@login_required
+@role_required('master_admin')
 def delete_user(id_user):
     cur = mysql.connection.cursor()
-    try:
-        # QUERY UPDATE: user_id
-        cur.execute("SELECT * FROM users WHERE user_id = %s", (id_user,))
-        data = cur.fetchone()
-        
-        if not data:
-            flash('Data pengguna tidak ditemukan!', 'warning')
-            return redirect(url_for('users'))
 
-        # QUERY UPDATE: user_id
-        cur.execute("DELETE FROM users WHERE user_id = %s", (id_user,))
-        mysql.connection.commit()
-        
-        if cur.rowcount > 0:
-            flash('Data pengguna berhasil dihapus!', 'success')
-        else:
-            flash('Gagal menghapus data.', 'danger')
+    cur.execute("SELECT role FROM users WHERE user_id=%s", (id_user,))
+    target = cur.fetchone()
 
-    except Exception as e:
-        mysql.connection.rollback()
-        flash(f'Terjadi kesalahan sistem: {e}', 'danger')
-        
-    finally:
-        cur.close()
+    if not target:
+        flash("User tidak ditemukan", "warning")
+        return redirect(url_for('users'))
 
+    if target['role'] == 'master_admin':
+        flash("Master Admin tidak boleh dihapus!", "danger")
+        return redirect(url_for('users'))
+
+    cur.execute("DELETE FROM users WHERE user_id=%s", (id_user,))
+    mysql.connection.commit()
+
+    log_activity(f"Menghapus user ID {id_user}")
+    flash("User berhasil dihapus", "success")
+
+    cur.close()
     return redirect(url_for('users'))
-
 
 # =========================
 # LIST SAMPAH
@@ -331,19 +396,28 @@ def sampah():
     # QUERY UPDATE: waste_items & waste_categories
     # Kolom: id, name, category_id, description, decomposition_time, benefits, image_sample
     cur.execute("""
-        SELECT w.*, c.name as jenis_sampah
+        SELECT
+            w.id,
+            w.name AS nama_sampah,
+            w.decomposition_time AS lama_terurai,
+            w.description AS deskripsi_sampah,
+            w.benefits AS manfaat_sampah,
+            w.image_sample,
+            c.name AS jenis_sampah
         FROM waste_items w
         LEFT JOIN waste_categories c
-        ON w.category_id = c.id
+            ON w.category_id = c.id
         ORDER BY w.id DESC
     """)
-    data = cur.fetchall()
+    sampah = cur.fetchall()
+
+
 
     # Tidak perlu konversi Base64 lagi karena DB menyimpan Path
     # Di HTML nanti panggil: <img src="{{ url_for('static', filename='uploads/' + row['image_sample']) }}">
     
     cur.close()
-    return render_template('sampah.html', sampah=data)
+    return render_template('sampah.html', sampah=sampah)
 
 
 # =========================
@@ -412,6 +486,8 @@ def save_sampah():
                 VALUES (%s,%s,%s,%s,%s,%s)
             """, (nama, kategori, lama, deskripsi, manfaat, filename))
             flash('Sampah berhasil ditambahkan', 'success')
+            mysql.connection.commit()
+            log_activity(f"Menambahkan data sampah: {nama}")
 
         else:
             # UPDATE
@@ -446,6 +522,53 @@ def save_sampah():
         cur.close()
 
     return redirect(url_for('sampah'))
+
+# =========================
+# DELETE SAMPAH
+# =========================
+@app.route('/sampah/delete/<int:id_sampah>')
+def delete_sampah(id_sampah):
+    cur = mysql.connection.cursor()
+    try:
+        # Cek data dulu
+        cur.execute("SELECT * FROM waste_items WHERE id = %s", (id_sampah,))
+        data = cur.fetchone()
+
+        if not data:
+            flash('Data sampah tidak ditemukan!', 'warning')
+            return redirect(url_for('sampah'))
+
+        # Hapus data
+        cur.execute("DELETE FROM waste_items WHERE id = %s", (id_sampah,))
+        mysql.connection.commit()
+
+        flash('Data sampah berhasil dihapus!', 'success')
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f'Gagal menghapus data: {e}', 'danger')
+
+    finally:
+        cur.close()
+
+    return redirect(url_for('sampah'))
+
+
+@app.route('/activity-logs')
+@login_required
+def activity_logs():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT l.id, l.activity, l.created_at, u.username
+        FROM activity_logs l
+        JOIN users u ON l.admin_id = u.user_id
+        ORDER BY l.created_at DESC
+    """)
+    logs = cur.fetchall()
+    cur.close()
+
+    return render_template('activity_logs.html', logs=logs)
+
 
 
 if __name__ == '__main__':

@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block title %}Log Aktivitas{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-clock-history me-2"></i> Log Aktivitas Admin
+            </h5>
+            <small class="text-muted">
+                Riwayat aktivitas admin dalam sistem
+            </small>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="20%">Admin</th>
+                            <th width="45%">Aktivitas</th>
+                            <th width="20%">Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <span class="fw-semibold">{{ log.username }}</span>
+                            </td>
+                            <td>{{ log.activity }}</td>
+                            <td class="text-muted">
+                                {{ log.created_at.strftime('%d %b %Y %H:%M') }}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                Belum ada aktivitas tercatat
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

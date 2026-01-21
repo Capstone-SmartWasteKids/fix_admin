@@ -108,16 +108,18 @@
                                         <i class="bi bi-eye"></i>
                                     </button>
 
-                                    <a href="{{ url_for('edit_user_form', id_user=row['id_users']) }}"
+                                    <a href="{{ url_for('edit_user_form', id_user=row['user_id']) }}"
                                         class="btn btn-sm btn-outline-warning btn-action" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
 
-                                    <a href="{{ url_for('delete_user', id_user=row['id_users']) }}"
+                                    {% if current_user.role == 'master_admin' %}
+                                    <a href="{{ url_for('delete_user', id_user=row.user_id) }}"
                                         class="btn btn-sm btn-outline-danger btn-action"
-                                        onclick='return confirm("Apakah Anda yakin ingin menghapus pengguna {{ row[nama_lengkap] }}? Data yang dihapus tidak bisa dikembalikan.")'
-                                        title="Hapus"> <i class="bi bi-trash"></i>
+                                        onclick="return confirm('Yakin menghapus user ini?')">
+                                        <i class="bi bi-trash"></i>
                                     </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

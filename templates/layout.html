@@ -119,6 +119,11 @@
             <i class="bi bi-people"></i> Pengguna
         </a>
 
+        <a href="{{ url_for('activity_logs') }}"
+        class="{{ 'active' if request.endpoint == 'activity_logs' else '' }}">
+            <i class="bi bi-clock-history"></i> Log Aktivitas
+        </a>
+
         <a href="{{ url_for('sampah') }}" class="{{ 'active' if request.endpoint == 'sampah' else '' }}">
             <i class="bi bi-trash"></i> Data Sampah
         </a>
