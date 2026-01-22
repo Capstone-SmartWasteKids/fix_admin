@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %}Admin Notifikasi{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header fw-bold">Kirim Notifikasi</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('send_notification') }}">
+                    <input name="title" class="form-control mb-2" placeholder="Judul" required>
+
+                    <textarea name="message" class="form-control mb-2"
+                        placeholder="Pesan" required></textarea>
+
+                    <select name="type" class="form-select mb-2">
+                        <option value="system">System</option>
+                        <option value="achievement">Achievement</option>
+                        <option value="content">Content</option>
+                    </select>
+
+                    <select name="user_id" class="form-select mb-3">
+                        <option value="all">Semua User</option>
+                        {% for u in users %}
+                        <option value="{{ u.user_id }}">{{ u.username }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button class="btn btn-primary w-100">Kirim</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header fw-bold">Riwayat Notifikasi</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for n in notifications %}
+                    <li class="list-group-item">
+                        <strong>{{ n.title }}</strong>
+                        <span class="badge bg-secondary">{{ n.type }}</span>
+                        <br>
+                        <small>{{ n.username }} • {{ n.created_at }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

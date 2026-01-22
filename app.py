@@ -783,5 +783,127 @@ def protect_admin():
         if not session:
             logout_user()
 
+@app.route('/admin/notifications')
+@login_required
+def admin_notifications():
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        SELECT n.*, u.username
+        FROM notifications n
+        JOIN users u ON n.user_id = u.user_id
+        ORDER BY n.created_at DESC
+    """)
+    notifications = cur.fetchall()
+
+    cur.execute("SELECT user_id, username FROM users WHERE role='child'")
+    users = cur.fetchall()
+
+    cur.close()
+
+    return render_template(
+        'admin_notifications.html',
+        notifications=notifications,
+        users=users
+    )
+
+@app.route('/admin/notifications/send', methods=['POST'])
+@login_required
+def send_notification():
+    title = request.form['title']
+    message = request.form['message']
+    notif_type = request.form['type']
+    user_id = request.form['user_id']  # 'all' atau id
+
+    cur = mysql.connection.cursor()
+
+    if user_id == 'all':
+        cur.execute("SELECT user_id FROM users WHERE role='child'")
+        users = cur.fetchall()
+
+        for u in users:
+            cur.execute("""
+                INSERT INTO notifications
+                (user_id, title, message, type, is_read, created_at)
+                VALUES (%s,%s,%s,%s,0,NOW())
+            """, (u['user_id'], title, message, notif_type))
+    else:
+        cur.execute("""
+            INSERT INTO notifications
+            (user_id, title, message, type, is_read, created_at)
+            VALUES (%s,%s,%s,%s,0,NOW())
+        """, (user_id, title, message, notif_type))
+
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Notifikasi berhasil dikirim', 'success')
+    return redirect(url_for('admin_notifications'))
+
+@app.route('/notifications')
+@login_required
+def notifications():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT *
+        FROM notifications
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+    """, (current_user.id_users,))
+    data = cur.fetchall()
+
+    cur.execute("""
+        UPDATE notifications
+        SET is_read = 1
+        WHERE user_id = %s
+    """, (current_user.id_users,))
+    mysql.connection.commit()
+
+    cur.close()
+    return render_template('notifications.html', notifications=data)
+
+
+@app.route('/notifications/read/<int:id>')
+@login_required
+def read_notification(id):
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        UPDATE notifications SET is_read=1
+        WHERE id=%s AND user_id=%s
+    """, (id, current_user.user_id))
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect(url_for('user_notifications'))
+
+def unread_notifications():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT COUNT(*) total FROM notifications
+        WHERE user_id=%s AND is_read=0
+    """, (current_user.user_id,))
+    total = cur.fetchone()['total']
+    cur.close()
+    return total
+
+@app.context_processor
+def inject_notifications():
+    def unread_notifications():
+        if not current_user.is_authenticated:
+            return 0
+
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT COUNT(*) AS total
+            FROM notifications
+            WHERE user_id = %s AND is_read = 0
+        """, (current_user.id_users,))
+        total = cur.fetchone()['total']
+        cur.close()
+        return total
+
+    return dict(unread_notifications=unread_notifications)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
