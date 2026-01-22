@@ -6,6 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import base64
 from functools import wraps
+from datetime import timedelta
+from flask import request
 
 # 1. Import Config dari file config.py
 from config import Config 
@@ -14,6 +16,12 @@ app = Flask(__name__)
 
 # 2. Muat konfigurasi dari Class Config
 app.config.from_object(Config)
+app.config['SESSION_PERMANENT'] = False
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=False,  # True kalau pakai HTTPS
+    SESSION_COOKIE_SAMESITE='Lax'
+)
 
 # Konfigurasi Upload Folder (Wajib ada karena DB baru menyimpan Path, bukan BLOB)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -191,7 +199,8 @@ def login():
             if check_password_hash(account['password'], password):
                 if account['role'] in ['admin', 'master_admin']:
                     user_obj = User(account['user_id'], account['username'], account['role'])
-                    login_user(user_obj, remember=True)
+                    session.permanent = False
+                    login_user(user_obj, remember=False)
                     log_activity("Login ke sistem")
                     flash('Login berhasil! Selamat datang.', 'success')
                     return redirect(url_for('dashboard'))
@@ -241,6 +250,7 @@ def save_master_admin():
 def logout():
     log_activity("Logout dari sistem")
     logout_user() 
+    session.clear()
     flash('Anda telah logout.', 'success')
     return redirect(url_for('login'))
 
@@ -767,6 +777,11 @@ def update_profile():
 
     return redirect(url_for('profile'))
 
+@app.before_request
+def protect_admin():
+    if current_user.is_authenticated:
+        if not session:
+            logout_user()
 
 if __name__ == '__main__':
     app.run(debug=True)
