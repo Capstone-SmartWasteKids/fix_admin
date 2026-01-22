@@ -22,9 +22,8 @@
                     <label>Kategori</label>
                     <select name="id_kategori" class="form-select" required>
                         {% for k in kategori %}
-                        <option value="{{ k['id_kategori'] }}"
-                            {{ 'selected' if sampah and sampah['id_kategori']==k['id_kategori'] }}>
-                            {{ k['jenis_sampah'] }}
+                        <option value="{{ k['id'] }}">
+                            {{ k['name'] }}
                         </option>
                         {% endfor %}
                     </select>

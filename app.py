@@ -66,23 +66,51 @@ login_manager.login_message_category = "warning"
 
 # --- CLASS USER ---
 class User(UserMixin):
-    def __init__(self, user_id, username, role):
-        self.id = user_id # Flask-Login butuh properti 'id'
+    def __init__(
+        self,
+        user_id,
+        username,
+        role,
+        avatar=None,
+        email=None,
+        full_name=None
+    ):
+        self.id = user_id          # WAJIB utk Flask-Login
+        self.user_id = user_id
         self.username = username
         self.role = role
+        self.avatar = avatar
+        self.email = email
+        self.full_name = full_name
+
 
 # --- USER LOADER ---
 @login_manager.user_loader
 def load_user(user_id):
     cur = mysql.connection.cursor()
-    # QUERY UPDATE: users (user_id)
-    cur.execute("SELECT user_id, username, role FROM users WHERE user_id = %s", (user_id,))
-    account = cur.fetchone()
+    cur.execute("""
+        SELECT
+            user_id,
+            username,
+            role,
+            avatar,
+            email,
+            full_name
+        FROM users
+        WHERE user_id = %s
+    """, (user_id,))
+    user = cur.fetchone()
     cur.close()
-    
-    if account:
-        # account['user_id'] sesuai nama kolom baru
-        return User(account['user_id'], account['username'], account['role'])
+
+    if user:
+        return User(
+            user['user_id'],
+            user['username'],
+            user['role'],
+            user['avatar'],
+            user['email'],
+            user['full_name']
+        )
     return None
 
 # --- ROUTES ---
@@ -284,7 +312,7 @@ def save_user():
     email = request.form['email']
     password = request.form['password']
     role = request.form['role']
-    level = request.form['current_level']
+    level = request.form['level']
 
     # HANDLING FILE (Menyimpan Nama File ke DB, File Fisik ke Folder)
     foto = request.files.get('foto_profile')
@@ -569,6 +597,175 @@ def activity_logs():
 
     return render_template('activity_logs.html', logs=logs)
 
+# =========================
+# LIST KATEGORI
+# =========================
+@app.route('/kategori')
+@login_required
+def kategori():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM waste_categories ORDER BY id DESC")
+    kategori = cur.fetchall()
+    cur.close()
+    return render_template('kategori.html', kategori=kategori)
+
+
+# =========================
+# SIMPAN KATEGORI
+# =========================
+@app.route('/kategori/save', methods=['POST'])
+@login_required
+def save_kategori():
+    nama = request.form['name']
+    deskripsi = request.form['description']
+
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        INSERT INTO waste_categories (name, description)
+        VALUES (%s, %s)
+    """, (nama, deskripsi))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Kategori berhasil ditambahkan', 'success')
+    return redirect(url_for('kategori'))
+
+
+# =========================
+# HAPUS KATEGORI
+# =========================
+@app.route('/kategori/delete/<int:id>')
+@login_required
+def delete_kategori(id):
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM waste_categories WHERE id=%s", (id,))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Kategori berhasil dihapus', 'success')
+    return redirect(url_for('kategori'))
+
+
+@app.route('/edukasi')
+@login_required
+def edukasi():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT id, title, content, media_url, content_type, created_at
+        FROM educational_contents
+        ORDER BY created_at DESC
+    """)
+    edukasi = cur.fetchall()
+    cur.close()
+
+    return render_template('edukasi.html', edukasi=edukasi)
+
+@app.route('/edukasi/add')
+@login_required
+def add_edukasi():
+    return render_template('form_edukasi.html', data=None)
+
+
+@app.route('/edukasi/save', methods=['POST'])
+@login_required
+def save_edukasi():
+    title = request.form['title']
+    content = request.form['content']
+    content_type = request.form['content_type']
+
+    file = request.files.get('media')
+    filename = None
+
+    if file and file.filename:
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        INSERT INTO educational_contents
+        (title, content, media_url, content_type, created_at)
+        VALUES (%s, %s, %s, %s, NOW())
+    """, (title, content, filename, content_type))
+
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Konten edukasi berhasil ditambahkan', 'success')
+    return redirect(url_for('edukasi'))
+
+@app.route('/edukasi/delete/<int:id>')
+def delete_edukasi(id):
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute(
+            "DELETE FROM educational_contents WHERE id=%s",
+            (id,)
+        )
+        mysql.connection.commit()
+        flash('Konten edukasi berhasil dihapus', 'success')
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f'Gagal menghapus data: {e}', 'danger')
+    finally:
+        cur.close()
+
+    return redirect(url_for('edukasi'))
+
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
+@app.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    full_name = request.form['full_name']
+    username  = request.form['username']
+    email     = request.form['email']
+    password  = request.form.get('password')
+
+    avatar = request.files.get('avatar')
+    filename = current_user.avatar
+
+    if avatar and avatar.filename:
+        filename = secure_filename(avatar.filename)
+        avatar.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    cur = mysql.connection.cursor()
+
+    try:
+        sql = """
+            UPDATE users SET
+                full_name=%s,
+                username=%s,
+                email=%s,
+                avatar=%s
+        """
+        params = [full_name, username, email, filename]
+
+        if password:
+            hashed = generate_password_hash(password)
+            sql += ", password=%s"
+            params.append(hashed)
+
+        sql += " WHERE user_id=%s"
+        params.append(current_user.id)
+
+        cur.execute(sql, tuple(params))
+        mysql.connection.commit()
+
+        flash('Profil berhasil diperbarui', 'success')
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f'Gagal update profil: {e}', 'danger')
+
+    finally:
+        cur.close()
+
+    return redirect(url_for('profile'))
 
 
 if __name__ == '__main__':

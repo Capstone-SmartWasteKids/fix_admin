@@ -48,15 +48,13 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Level Awal</label>
-                                <select name="current_level" class="form-select">
-                                    {% for lvl in levels %}
-                                    <option value="{{ lvl['id_level'] }}" {{ 'selected' if user and
-                                        user['current_level']==lvl['id_level'] }}>
-                                        {{ lvl['nama_level'] }}
-                                    </option>
-                                    {% endfor %}
+                            <div class="mb-3">
+                                <label class="form-label">Level</label>
+                                <select name="level" class="form-select" required>
+                                    <option value="">-- Pilih Level --</option>
+                                    <option value="pemula" {{ 'selected' if user and user.level == 'pemula' }}>Pemula</option>
+                                    <option value="menengah" {{ 'selected' if user and user.level == 'menengah' }}>Menengah</option>
+                                    <option value="lanjutan" {{ 'selected' if user and user.level == 'lanjutan' }}>Lanjutan</option>
                                 </select>
                             </div>
 

@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% block title %}Profil Saya{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <form action="{{ url_for('update_profile') }}" method="POST" enctype="multipart/form-data">
+            <div class="card shadow-sm">
+
+                <!-- HEADER -->
+                <div class="card-header bg-white text-center">
+                    {% if current_user.avatar %}
+                        <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}"
+                             class="rounded-circle mb-2"
+                             width="120" height="120"
+                             style="object-fit: cover;">
+                    {% else %}
+                        <i class="bi bi-person-circle text-secondary" style="font-size: 120px;"></i>
+                    {% endif %}
+
+                    <h5 class="mt-2">{{ current_user.username }}</h5>
+                    <span class="badge bg-success">{{ current_user.role }}</span>
+                </div>
+
+                <!-- BODY -->
+                <div class="card-body">
+
+                    <input type="hidden" name="user_id" value="{{ current_user.user_id }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" name="full_name"
+                               class="form-control"
+                               value="{{ current_user.full_name }}"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username"
+                               class="form-control"
+                               value="{{ current_user.username }}"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email"
+                               class="form-control"
+                               value="{{ current_user.email }}"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Password Baru
+                            <small class="text-muted">(kosongkan jika tidak diganti)</small>
+                        </label>
+                        <input type="password" name="password" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Foto Profil</label>
+                        <input type="file" name="avatar" class="form-control">
+                    </div>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Simpan Perubahan
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

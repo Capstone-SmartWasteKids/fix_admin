@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}Tambah Edukasi{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form action="{{ url_for('save_edukasi') }}" method="POST" enctype="multipart/form-data">
+
+        <div class="mb-3">
+            <label>Judul</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Konten</label>
+            <textarea name="content" class="form-control" rows="5" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label>Tipe Konten</label>
+            <select name="content_type" class="form-select" required>
+                <option value="">-- Pilih Tipe --</option>
+                <option value="text">Text</option>
+                <option value="video">Video</option>
+                <option value="image">Image</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label>Media (Opsional)</label>
+            <input type="file" name="media" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Simpan</button>
+    </form>
+    </div>
+</div>
+{% endblock %}

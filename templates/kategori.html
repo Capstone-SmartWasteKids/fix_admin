@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block title %}Kategori Sampah{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <h5>Kategori Sampah</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addKategori">
+            Tambah
+        </button>
+    </div>
+
+    <div class="card-body">
+        <table class="table">
+            <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>Deskripsi</th>
+                <th>Aksi</th>
+            </tr>
+            {% for k in kategori %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ k.name }}</td>
+                <td>{{ k.description }}</td>
+                <td>
+                    <a href="/kategori/delete/{{ k.id }}"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('Hapus kategori?')">Hapus</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<!-- MODAL -->
+<form method="POST" action="/kategori/save">
+<div class="modal fade" id="addKategori">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5>Tambah Kategori</h5></div>
+            <div class="modal-body">
+                <input name="name" class="form-control mb-2" placeholder="Nama" required>
+                <textarea name="description" class="form-control" placeholder="Deskripsi"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+$(document).ready(function () {
+    $('#kategoriTable').DataTable();
+});
+</script>
+{% endblock %}

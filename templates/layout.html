@@ -128,6 +128,18 @@
             <i class="bi bi-trash"></i> Data Sampah
         </a>
 
+        <a href="{{ url_for('kategori') }}">
+            <i class="bi bi-tags"></i> Kategori Sampah
+        </a>
+
+        <a href="{{ url_for('edukasi') }}">
+            <i class="bi bi-book"></i> Konten Edukasi
+        </a>
+
+        <a href="{{ url_for('profile') }}">
+            <i class="bi bi-person-circle"></i> Profil
+        </a>
+
         <a href="{{ url_for('logout') }}">
             <i class="bi bi-box-arrow-right"></i> Logout
         </a>
@@ -155,7 +167,7 @@
             <div class="user-avatar d-flex align-items-center justify-content-center bg-light">
     {% if current_user.avatar %}
         <img
-            src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar) }}"
+            src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}"
             alt="Avatar"
             style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
     {% else %}
@@ -183,7 +195,6 @@
 
 <script>
     $(document).ready(function () {
-        $('table.table').DataTable({ responsive: true });
     });
 </script>
 

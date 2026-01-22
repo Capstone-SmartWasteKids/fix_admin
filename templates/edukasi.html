@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}Konten Edukasi{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('add_edukasi') }}" class="btn btn-primary mb-3">
+    + Tambah Edukasi
+</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Judul</th>
+            <th>Tipe</th>
+            <th>Media</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for e in edukasi %}
+        <tr>
+            <td>{{ e.title }}</td>
+            <td>{{ e.content_type }}</td>
+            <td>
+                {% if e.media_url %}
+                    <img src="{{ url_for('static', filename='uploads/' + e.media_url) }}" width="80">
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>
+                <a href="/edukasi/delete/{{ e.id }}" class="btn btn-danger btn-sm"
+                   onclick="return confirm('Hapus?')">Hapus</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    
+</table>
+{% endblock %}
